@@ -33,10 +33,78 @@ variable "cluster_secondary_range_name" {
   type        = string
 }
 
+variable "public_vpc_tag" {
+  type        = string
+  description = "The network tag string used for the public access tier"
+}
+
+variable "env" {
+  type = string
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# NODE POOL OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "preemptible" {
+  type        = bool
+  description = "Whether to enable pre-emptible instances. Cannot be used in conjuction with SPOT"
+  default     = false
+}
+variable "spot" {
+  type        = bool
+  description = "Whether to enable SPOT Node VMs"
+  default     = false
+}
+
+variable "min_node_count" {
+  type        = string
+  description = "Number of nodes"
+  default     = "1"
+}
+
+variable "max_node_count" {
+  type        = string
+  description = "Number of nodes"
+  default     = "5"
+}
+
+variable "machine_type" {
+  type        = string
+  description = "GKE Instance type to use"
+  default = "e2-standard-2"
+}
+
+
+variable "node_labels" {
+  type        = string
+  description = "(optional) describe your variable"
+  default = null
+}
+# ---------------------------------------------------------------------------------------------------------------------
+# SERVICE ACCOUNT OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "cluster_service_account_name" {
+  type    = string
+  default = "gke-cluster-sa"
+}
+
+variable "cluster_service_account_description" {
+  description = "A description of the custom service account used for the GKE cluster."
+  type        = string
+  default     = "GKE Node Pool Service Account. managed by Terraform"
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
+
 
 variable "description" {
   description = "The description of the cluster"
@@ -172,18 +240,6 @@ variable "enable_network_policy" {
   default     = true
 }
 
-variable "basic_auth_username" {
-  description = "The username used for basic auth; set both this and `basic_auth_password` to \"\" to disable basic auth."
-  type        = string
-  default     = ""
-}
-
-variable "basic_auth_password" {
-  description = "The password used for basic auth; set both this and `basic_auth_username` to \"\" to disable basic auth."
-  type        = string
-  default     = ""
-}
-
 variable "enable_client_certificate_authentication" {
   description = "Whether to enable authentication by x509 certificates. With ABAC disabled, these certificates are effectively useless."
   type        = bool
@@ -218,12 +274,18 @@ variable "services_secondary_range_name" {
 
 variable "enable_workload_identity" {
   description = "Enable Workload Identity on the cluster"
-  default     = false
+  default     = true
   type        = bool
 }
 
-variable "identity_namespace" {
+variable "workload_pool" {
   description = "Workload Identity Namespace. Default sets project based namespace [project_id].svc.id.goog"
   default     = null
   type        = string
 }
+
+variable "enable_shielded_nodes" {
+  description = "Enable shielded nodes features on all nodes in this cluster. Default is set to true"
+  default     = true
+  type        = bool
+} 

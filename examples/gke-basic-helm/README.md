@@ -7,10 +7,12 @@ using [Helm](https://helm.sh/).
 
 In this guide we will walk through the steps necessary to get up and running with GKE and Helm. Here are the steps:
 
-1. [Install the necessary tools](#installing-necessary-tools)
-1. [Apply the Terraform code](#apply-the-terraform-code)
-1. [Verify the Deployed Chart](#verify-the-deployed-chart)
-1. [Destroy the Deployed Resources](#destroy-the-deployed-resources)
+- [GKE Basic Helm Example](#gke-basic-helm-example)
+  - [Overview](#overview)
+  - [Installing necessary tools](#installing-necessary-tools)
+  - [Apply the Terraform Code](#apply-the-terraform-code)
+  - [Verify the Deployed Chart](#verify-the-deployed-chart)
+  - [Destroy the deployed resources](#destroy-the-deployed-resources)
 
 ## Installing necessary tools
 
@@ -35,7 +37,7 @@ Windows.
 Now that all the prerequisite tools are installed, we are ready to deploy the GKE cluster!
 
 1. If you haven't already, clone this repo:
-   - `git clone https://github.com/gruntwork-io/terraform-google-gke.git`
+   - `git clone https://github.com/staropshq/terraform-gcp-gke.git`
 1. Make sure you are in the root project folder:
    - `cd terraform-google-gke`
 1. Fill in the required variables in `variables.tf` based on your needs

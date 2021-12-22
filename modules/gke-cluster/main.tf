@@ -1,3 +1,15 @@
+terraform {
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 1.0.x code.
+  required_version = ">= 0.12.26"
+
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DEPLOY A PUBLIC CLUSTER IN GOOGLE CLOUD PLATFORM
+# ---------------------------------------------------------------------------------------------------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DEPLOY A GKE CLUSTER
 # This module deploys a GKE cluster, a managed, production-ready environment for deploying containerized applications.
@@ -11,9 +23,11 @@ terraform {
 }
 
 locals {
-  workload_identity_config = !var.enable_workload_identity ? [] : var.identity_namespace == null ? [{
-    identity_namespace = "${var.project}.svc.id.goog" }] : [{ identity_namespace = var.identity_namespace
+
+  workload_identity_config = !var.enable_workload_identity ? [] : var.workload_pool == null ? [{
+    workload_pool = "${var.project}.svc.id.goog" }] : [{ workload_pool = var.workload_pool
   }]
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -35,6 +49,10 @@ resource "google_container_cluster" "cluster" {
   logging_service    = var.logging_service
   monitoring_service = var.monitoring_service
   min_master_version = local.kubernetes_version
+
+  # Whether to enabled shielded nodes
+  enable_shielded_nodes = var.enable_shielded_nodes
+
 
   # Whether to enable legacy Attribute-Based Access Control (ABAC). RBAC has significant security advantages over ABAC.
   enable_legacy_abac = var.enable_legacy_abac
@@ -105,8 +123,9 @@ resource "google_container_cluster" "cluster" {
   }
 
   master_auth {
-    username = var.basic_auth_username
-    password = var.basic_auth_password
+    client_certificate_config {
+      issue_client_certificate = false
+    }
   }
 
   dynamic "master_authorized_networks_config" {
@@ -163,7 +182,7 @@ resource "google_container_cluster" "cluster" {
     for_each = local.workload_identity_config
 
     content {
-      identity_namespace = workload_identity_config.value.identity_namespace
+      workload_pool = workload_identity_config.value.workload_pool
     }
   }
 
@@ -188,4 +207,20 @@ locals {
 data "google_container_engine_versions" "location" {
   location = var.location
   project  = var.project
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE A CUSTOM SERVICE ACCOUNT TO USE WITH THE GKE CLUSTER
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "gke_service_account" {
+
+  source = "github.com/gruntwork-io/terraform-google-gke.git//modules/gke-service-account?ref=v0.10.0"
+  # source = "../../modules/gke-service-account"
+  
+# roles/storage.objectViewer
+  name        = var.cluster_service_account_name
+  project     = var.project
+  description = var.cluster_service_account_description
 }
